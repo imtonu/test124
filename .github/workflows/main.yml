@@ -1,0 +1,48 @@
+function keepCodespaceActive() {
+  const randomizeInterval = (baseInterval) => baseInterval + Math.random() * baseInterval;
+  const reopenButtonSelector = '.reopen-codespace-btn';
+  let reopenInterval;
+
+  const clickReopen = () => {
+    const reopenButton = document.querySelector(reopenButtonSelector);
+    if (reopenButton) {
+      reopenButton.click();
+      console.log('%c[Codespace Keeper] Se ha hecho clic en el botón de reapertura de Codespace.', 'color: green');
+    } else {
+      console.error('%c[Codespace Keeper] No se pudo encontrar el botón de reapertura de Codespace.', 'color: red');
+    }
+  };
+
+  const keepCodespaceAlive = async () => {
+    try {
+      // Agrega aquí la lógica para verificar la salud de tu Codespace, si es necesario
+      const codespaceIsHealthy = await fetch('https://api.github.com/codespaces/<codespace_id>/health').then(response => response.json()).then(data => data.healthy);
+      if (!codespaceIsHealthy) {
+        restartKeepAlive();
+      }
+    } catch (error) {
+      console.error('%c[Codespace Keeper] Error al verificar la salud de Codespace:', 'color: red', error);
+      restartKeepAlive();
+    }
+  };
+
+  const restartKeepAlive = () => {
+    clearInterval(reopenInterval);
+    startKeepAlive();
+  };
+
+  const startKeepAlive = () => {
+    reopenInterval = setInterval(clickReopen, randomizeInterval(4 * 60 * 1000));
+    setInterval(keepCodespaceAlive, randomizeInterval(60 * 1000));
+    console.log('%c[Codespace Keeper] El script para mantener activa la sesión de Codespace está en funcionamiento.', 'color: green');
+    // Puedes agregar un mensaje de notificación si lo deseas
+  };
+
+  if (document.readyState === 'complete') {
+    startKeepAlive();
+  } else {
+    window.addEventListener('load', startKeepAlive);
+  }
+}
+
+keepCodespaceActive();
